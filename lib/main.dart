@@ -29,6 +29,9 @@ class AppResources {
       'menu_skills': 'Skills',
       'menu_services': 'Services',
       'menu_contact': 'Contact',
+      'price_basic': 'Basic Plan',
+      'price_std': 'Standard Plan',
+      'price_premium': 'Custom Plan',
     },
     'vi': {
       'role': 'Senior Fullstack Developer',
@@ -45,6 +48,9 @@ class AppResources {
       'menu_skills': 'Kỹ Năng',
       'menu_services': 'Dịch Vụ',
       'menu_contact': 'Liên Hệ',
+      'price_basic': 'Cơ Bản',
+      'price_std': 'Tiêu Chuẩn',
+      'price_pre': "Thỏa Thuận",
     }
   };
 
@@ -102,7 +108,7 @@ class MyPortfolioApp extends StatelessWidget {
           seedColor: const Color(0xFF00BFA6),
           primary: const Color(0xFF00BFA6),
         ),
-        textTheme: GoogleFonts.robotoMonoTextTheme(),
+        textTheme: GoogleFonts.poppinsTextTheme(),
       ),
       home: const MainLayout(),
     );
@@ -110,7 +116,7 @@ class MyPortfolioApp extends StatelessWidget {
 }
 
 // ============================================================================
-// 3. MAIN LAYOUT (LOADING + RESPONSIVE)
+// 3. MAIN LAYOUT
 // ============================================================================
 
 class MainLayout extends StatefulWidget {
@@ -127,7 +133,6 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   void initState() {
     super.initState();
-    // Giả lập thời gian loading 2.5 giây
     Future.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) setState(() => _isLoading = false);
     });
@@ -139,7 +144,6 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
-    // Sử dụng AnimatedSwitcher để chuyển cảnh mượt mà từ Loading sang Trang chủ
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 800),
       switchInCurve: Curves.easeOut,
@@ -162,15 +166,14 @@ class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Nền đen sang trọng lúc loading
+      backgroundColor: Colors.black,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo Text Animation
             Text(
-              "Vu Pham",
-              style: TextStyle(
+              "VuPham.",
+              style: GoogleFonts.poppins(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -180,11 +183,10 @@ class LoadingScreen extends StatelessWidget {
                 .animate()
                 .fadeIn(duration: 600.ms)
                 .slideY(begin: 0.2, end: 0)
-                .shimmer(duration: 1500.ms, color: const Color(0xFF00BFA6)), // Hiệu ứng quét sáng
+                .shimmer(duration: 1500.ms, color: const Color(0xFF00BFA6)),
 
             const SizedBox(height: 20),
 
-            // Loading Bar
             SizedBox(
               width: 150,
               child: LinearProgressIndicator(
@@ -200,12 +202,28 @@ class LoadingScreen extends StatelessWidget {
   }
 }
 
-// --- HOME PAGE (RESPONSIVE) ---
+// --- HOME PAGE ---
 class HomePage extends StatelessWidget {
   final String langCode;
   final VoidCallback onLanguageToggle;
 
-  const HomePage({super.key, required this.langCode, required this.onLanguageToggle});
+  final GlobalKey homeKey = GlobalKey();
+  final GlobalKey skillsKey = GlobalKey();
+  final GlobalKey servicesKey = GlobalKey();
+  final GlobalKey contactKey = GlobalKey();
+
+  HomePage({super.key, required this.langCode, required this.onLanguageToggle});
+
+  void _scrollToSection(GlobalKey key) {
+    final context = key.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOutCubic,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -216,49 +234,44 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       key: scaffoldKey,
       backgroundColor: Colors.white,
-
-      // Responsive AppBar
       appBar: isDesktop
-          ? DesktopNavBar(langCode: langCode)
+          ? DesktopNavBar(
+        langCode: langCode,
+        onHomeTap: () => _scrollToSection(homeKey),
+        onSkillsTap: () => _scrollToSection(skillsKey),
+        onServicesTap: () => _scrollToSection(servicesKey),
+        onContactTap: () => _scrollToSection(contactKey),
+      )
           : MobileNavBar(langCode: langCode, onMenuTap: () => scaffoldKey.currentState?.openEndDrawer()),
-
-      // Mobile Drawer (Menu bên phải)
-      endDrawer: !isDesktop ? MobileDrawer(langCode: langCode) : null,
-
+      endDrawer: !isDesktop
+          ? MobileDrawer(
+        langCode: langCode,
+        onHomeTap: () => _scrollToSection(homeKey),
+        onSkillsTap: () => _scrollToSection(skillsKey),
+        onServicesTap: () => _scrollToSection(servicesKey),
+        onContactTap: () => _scrollToSection(contactKey),
+      )
+          : null,
       floatingActionButton: FloatingActionButton(
         onPressed: onLanguageToggle,
         backgroundColor: const Color(0xFF00BFA6),
-        mini: !isDesktop, // Nhỏ hơn trên mobile
+        mini: !isDesktop,
         child: Text(langCode.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
       ),
-
       body: SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(height: isDesktop ? 40 : 20),
-
-            // 1. Hero
-            HeroSection(isDesktop: isDesktop, langCode: langCode),
-
+            HeroSection(key: homeKey, isDesktop: isDesktop, langCode: langCode),
             SizedBox(height: isDesktop ? 80 : 50),
-
-            // 2. Skill & Exp
-            SkillAndExpSection(isDesktop: isDesktop, langCode: langCode),
-
+            SkillAndExpSection(key: skillsKey, isDesktop: isDesktop, langCode: langCode),
             SizedBox(height: isDesktop ? 80 : 50),
-
-            // 3. Services
-            ServicesSection(isDesktop: isDesktop, langCode: langCode),
-
+            ServicesSection(key: servicesKey, isDesktop: isDesktop, langCode: langCode),
             SizedBox(height: isDesktop ? 80 : 50),
-
-            // 4. Pricing
             PricingSection(isDesktop: isDesktop, langCode: langCode),
-
             SizedBox(height: isDesktop ? 80 : 50),
-
-            // 5. Contact
-            ContactSection(isDesktop: isDesktop, langCode: langCode),
+            ContactSection(key: contactKey, isDesktop: isDesktop, langCode: langCode),
+            const SizedBox(height: 50),
           ],
         ),
       ),
@@ -267,14 +280,25 @@ class HomePage extends StatelessWidget {
 }
 
 // ============================================================================
-// 4. COMPONENTS (Mobile Optimized)
+// 4. NAVIGATION COMPONENTS
 // ============================================================================
-
-// --- NAVIGATION ---
 
 class DesktopNavBar extends StatelessWidget implements PreferredSizeWidget {
   final String langCode;
-  const DesktopNavBar({super.key, required this.langCode});
+  final VoidCallback onHomeTap;
+  final VoidCallback onSkillsTap;
+  final VoidCallback onServicesTap;
+  final VoidCallback onContactTap;
+
+  const DesktopNavBar({
+    super.key,
+    required this.langCode,
+    required this.onHomeTap,
+    required this.onSkillsTap,
+    required this.onServicesTap,
+    required this.onContactTap,
+  });
+
   @override
   Size get preferredSize => const Size.fromHeight(80);
 
@@ -287,17 +311,17 @@ class DesktopNavBar extends StatelessWidget implements PreferredSizeWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text("Vu Pham", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          Text("VuPham.", style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold)),
           Row(
             children: [
-              _navItem(AppResources.getString(langCode, 'menu_home')),
-              _navItem(AppResources.getString(langCode, 'menu_skills')),
-              _navItem(AppResources.getString(langCode, 'menu_services')),
-              _navItem(AppResources.getString(langCode, 'menu_contact')),
+              _navItem(AppResources.getString(langCode, 'menu_home'), onHomeTap),
+              _navItem(AppResources.getString(langCode, 'menu_skills'), onSkillsTap),
+              _navItem(AppResources.getString(langCode, 'menu_services'), onServicesTap),
+              _navItem(AppResources.getString(langCode, 'menu_contact'), onContactTap),
             ],
           ),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: onContactTap,
             style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
                 foregroundColor: Colors.white,
@@ -310,9 +334,13 @@ class DesktopNavBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-  Widget _navItem(String title) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 15),
-    child: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+
+  Widget _navItem(String title, VoidCallback onTap) => InkWell(
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      child: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
+    ),
   );
 }
 
@@ -329,7 +357,7 @@ class MobileNavBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.white,
       elevation: 0,
-      title: Text("VuPham.", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
+      title: Text("VuPham.", style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
       actions: [
         IconButton(
           icon: const Icon(Icons.menu, color: Colors.black),
@@ -342,7 +370,24 @@ class MobileNavBar extends StatelessWidget implements PreferredSizeWidget {
 
 class MobileDrawer extends StatelessWidget {
   final String langCode;
-  const MobileDrawer({super.key, required this.langCode});
+  final VoidCallback onHomeTap;
+  final VoidCallback onSkillsTap;
+  final VoidCallback onServicesTap;
+  final VoidCallback onContactTap;
+
+  const MobileDrawer({
+    super.key,
+    required this.langCode,
+    required this.onHomeTap,
+    required this.onSkillsTap,
+    required this.onServicesTap,
+    required this.onContactTap,
+  });
+
+  void _handleTap(BuildContext context, VoidCallback scrollAction) {
+    Navigator.pop(context);
+    scrollAction();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -354,20 +399,22 @@ class MobileDrawer extends StatelessWidget {
           DrawerHeader(
             decoration: const BoxDecoration(color: Color(0xFF00BFA6)),
             child: Center(
-              child: Text("Menu", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+              child: Text("Menu", style: GoogleFonts.poppins(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
             ),
           ),
-          ListTile(leading: const Icon(Icons.home), title: Text(AppResources.getString(langCode, 'menu_home')), onTap: () {}),
-          ListTile(leading: const Icon(Icons.code), title: Text(AppResources.getString(langCode, 'menu_skills')), onTap: () {}),
-          ListTile(leading: const Icon(Icons.work), title: Text(AppResources.getString(langCode, 'menu_services')), onTap: () {}),
-          ListTile(leading: const Icon(Icons.mail), title: Text(AppResources.getString(langCode, 'menu_contact')), onTap: () {}),
+          ListTile(leading: const Icon(Icons.home), title: Text(AppResources.getString(langCode, 'menu_home')), onTap: () => _handleTap(context, onHomeTap)),
+          ListTile(leading: const Icon(Icons.code), title: Text(AppResources.getString(langCode, 'menu_skills')), onTap: () => _handleTap(context, onSkillsTap)),
+          ListTile(leading: const Icon(Icons.work), title: Text(AppResources.getString(langCode, 'menu_services')), onTap: () => _handleTap(context, onServicesTap)),
+          ListTile(leading: const Icon(Icons.mail), title: Text(AppResources.getString(langCode, 'menu_contact')), onTap: () => _handleTap(context, onContactTap)),
         ],
       ),
     );
   }
 }
 
-// --- SECTIONS ---
+// ============================================================================
+// 5. SECTIONS
+// ============================================================================
 
 class HeroSection extends StatelessWidget {
   final bool isDesktop;
@@ -378,7 +425,6 @@ class HeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final padding = isDesktop ? 100.0 : 20.0;
 
-    // Widget Ảnh đại diện (Tách ra để tái sử dụng)
     Widget profileImage = SizedBox(
       width: isDesktop ? 400 : 250,
       height: isDesktop ? 400 : 250,
@@ -399,7 +445,6 @@ class HeroSection extends StatelessWidget {
       ),
     ).animate().scale(delay: 500.ms, duration: 800.ms, curve: Curves.elasticOut);
 
-    // Widget Nội dung chữ (Tách ra để tái sử dụng)
     Widget textContent = Column(
       crossAxisAlignment: isDesktop ? CrossAxisAlignment.start : CrossAxisAlignment.center,
       children: [
@@ -408,19 +453,18 @@ class HeroSection extends StatelessWidget {
         const SizedBox(height: 10),
         Text("PHAM QUANG VU",
             textAlign: isDesktop ? TextAlign.start : TextAlign.center,
-            style: TextStyle(fontSize: isDesktop ? 48 : 32, fontWeight: FontWeight.bold, height: 1.1)),
+            style: GoogleFonts.poppins(fontSize: isDesktop ? 48 : 32, fontWeight: FontWeight.bold, height: 1.1)),
         Text(AppResources.getString(langCode, 'role').toUpperCase(),
             textAlign: isDesktop ? TextAlign.start : TextAlign.center,
-            style: TextStyle(fontSize: isDesktop ? 24 : 16, fontWeight: FontWeight.w300, letterSpacing: 2)),
+            style: GoogleFonts.poppins(fontSize: isDesktop ? 24 : 16, fontWeight: FontWeight.w300, letterSpacing: 2)),
         const SizedBox(height: 20),
         Text(AppResources.getString(langCode, 'intro'),
             textAlign: isDesktop ? TextAlign.start : TextAlign.center,
             style: const TextStyle(color: Colors.grey, fontSize: 15, height: 1.6)),
         const SizedBox(height: 30),
-        Wrap(
-          alignment: WrapAlignment.center,
+        Row(
+          mainAxisAlignment: isDesktop ? MainAxisAlignment.start : MainAxisAlignment.center,
           spacing: 20,
-          runSpacing: 10,
           children: [
             ElevatedButton(
               onPressed: () {},
@@ -446,23 +490,20 @@ class HeroSection extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: padding),
-      // LOGIC FIX:
-      // Nếu là Desktop: Dùng Row + Expanded để chia cột trái phải.
-      // Nếu là Mobile: Dùng Column (không Expanded) để xếp chồng lên nhau, tránh lỗi layout.
       child: isDesktop
           ? Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           profileImage,
           const SizedBox(width: 50),
-          Expanded(child: textContent), // Chỉ dùng Expanded trong Row
+          Expanded(child: textContent),
         ],
       )
           : Column(
         children: [
           profileImage,
           const SizedBox(height: 30),
-          textContent, // Không dùng Expanded trong Column (Mobile)
+          textContent,
         ],
       ),
     );
@@ -489,7 +530,6 @@ class SkillAndExpSection extends StatelessWidget {
         direction: isDesktop ? Axis.horizontal : Axis.vertical,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Skills
           Expanded(
             flex: isDesktop ? 1 : 0,
             child: Column(
@@ -497,14 +537,11 @@ class SkillAndExpSection extends StatelessWidget {
               children: [
                 SectionTitle(title: AppResources.getString(langCode, 'section_skills')),
                 const SizedBox(height: 30),
-                ...mySkills.map((skill) => _buildSkillBar(skill['name'], skill['percent'])).toList(),
+                ...mySkills.map((skill) => _buildSkillBar(skill['name'], skill['percent'])),
               ],
             ),
           ),
-
           SizedBox(width: isDesktop ? 80 : 0, height: isDesktop ? 0 : 50),
-
-          // Experience
           Expanded(
             flex: isDesktop ? 1 : 0,
             child: Column(
@@ -530,60 +567,72 @@ class SkillAndExpSection extends StatelessWidget {
   }
 
   Widget _buildSkillBar(String name, double percent) {
+    // UPDATED: Bọc trong HoverBorderContainer để có hiệu ứng hover
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        children: [
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-            Text("${(percent * 100).toInt()}%", style: const TextStyle(color: Colors.grey)),
-          ]),
-          const SizedBox(height: 8),
-          LinearProgressIndicator(
-            value: percent,
-            backgroundColor: Colors.grey.shade200,
-            color: const Color(0xFF00BFA6),
-            minHeight: 8,
-            borderRadius: BorderRadius.circular(4),
-          ).animate().slideX(duration: 1.seconds, begin: -1, curve: Curves.easeOut),
-        ],
+      child: HoverBorderContainer(
+        borderRadius: 8,
+        isTransparent: false,
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          children: [
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+              Text("${(percent * 100).toInt()}%", style: const TextStyle(color: Colors.grey)),
+            ]),
+            const SizedBox(height: 8),
+            LinearProgressIndicator(
+              value: percent,
+              backgroundColor: Colors.grey.shade200,
+              color: const Color(0xFF00BFA6),
+              minHeight: 8,
+              borderRadius: BorderRadius.circular(4),
+            ).animate().slideX(duration: 1.seconds, begin: -1, curve: Curves.easeOut),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildTimelineItem(String time, String role, String company, String desc) {
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            children: [
-              Container(width: 12, height: 12, decoration: const BoxDecoration(color: Color(0xFF00BFA6), shape: BoxShape.circle)),
-              Expanded(child: Container(width: 2, color: Colors.grey.shade200)),
-            ],
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 30),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: const Color(0xFF00BFA6).withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
-                    child: Text(time, style: const TextStyle(color: Color(0xFF00BFA6), fontSize: 12, fontWeight: FontWeight.bold)),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(role, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                  Text(company, style: const TextStyle(fontSize: 14, color: Colors.black54)),
-                  const SizedBox(height: 5),
-                  Text(desc, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-                ],
-              ),
+    // UPDATED: Bọc trong HoverBorderContainer
+    return HoverBorderContainer(
+      borderRadius: 8,
+      isTransparent: false,
+      padding: const EdgeInsets.all(12),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Column(
+              children: [
+                Container(width: 12, height: 12, decoration: const BoxDecoration(color: Color(0xFF00BFA6), shape: BoxShape.circle)),
+                Expanded(child: Container(width: 2, color: Colors.grey.shade200)),
+              ],
             ),
-          )
-        ],
+            const SizedBox(width: 20),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 15),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: const Color(0xFF00BFA6).withOpacity(0.1), borderRadius: BorderRadius.circular(4)),
+                      child: Text(time, style: const TextStyle(color: Color(0xFF00BFA6), fontSize: 12, fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(role, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    Text(company, style: const TextStyle(fontSize: 14, color: Colors.black54)),
+                    const SizedBox(height: 5),
+                    Text(desc, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -608,7 +657,6 @@ class ServicesSection extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: isDesktop ? 30 : 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 50),
-          // Sử dụng Wrap để tự động xuống dòng trên mobile
           Wrap(
             spacing: 30,
             runSpacing: 30,
@@ -625,18 +673,13 @@ class ServicesSection extends StatelessWidget {
   }
 
   Widget _serviceCard(BuildContext context, IconData icon, String title, String sub) {
-    // Card width tự điều chỉnh theo màn hình
     final width = MediaQuery.of(context).size.width;
     final cardWidth = width > 900 ? 300.0 : (width > 600 ? width / 2.2 : width - 40);
 
-    return Container(
+    // UPDATED: Sử dụng HoverBorderContainer
+    return HoverBorderContainer(
       width: cardWidth,
       padding: const EdgeInsets.all(30),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [BoxShadow(color: Colors.grey.shade100, blurRadius: 10, offset: const Offset(0, 5))]
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -685,17 +728,13 @@ class PricingSection extends StatelessWidget {
 
   Widget _pricingCard(BuildContext context, String title, String price, String unit, List<String> features, bool isPopular) {
     final width = MediaQuery.of(context).size.width;
-    final cardWidth = width > 900 ? 300.0 : (width - 40); // Full width trên mobile
+    final cardWidth = width > 900 ? 300.0 : (width - 40);
 
-    return Container(
+    // UPDATED: Sử dụng HoverBorderContainer với tham số isPopular
+    return HoverBorderContainer(
       width: cardWidth,
       padding: const EdgeInsets.all(30),
-      decoration: BoxDecoration(
-          color: isPopular ? Colors.black : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: isPopular ? null : Border.all(color: Colors.grey.shade200),
-          boxShadow: isPopular ? [const BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, 10))] : null
-      ),
+      isPopular: isPopular, // Xử lý nền đen cho Popular card
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -832,7 +871,9 @@ class ContactSection extends StatelessWidget {
   }
 }
 
-// --- HELPER CLASSES ---
+// ============================================================================
+// 6. HELPER CLASSES & NEW HOVER WIDGET
+// ============================================================================
 
 class DashedCirclePainter extends CustomPainter {
   @override
@@ -873,6 +914,86 @@ class SectionTitle extends StatelessWidget {
         Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         Container(width: 50, height: 3, color: const Color(0xFF00BFA6), margin: const EdgeInsets.only(top: 5))
       ],
+    );
+  }
+}
+
+// --- NEW WIDGET: HOVER BORDER EFFECT ---
+class HoverBorderContainer extends StatefulWidget {
+  final Widget child;
+  final double? width;
+  final EdgeInsetsGeometry? padding;
+  final bool isPopular;
+  final bool isTransparent; // Dùng cho Skill Bar (nền trong suốt)
+  final double borderRadius;
+
+  const HoverBorderContainer({
+    super.key,
+    required this.child,
+    this.width,
+    this.padding,
+    this.isPopular = false,
+    this.isTransparent = false,
+    this.borderRadius = 10,
+  });
+
+  @override
+  State<HoverBorderContainer> createState() => _HoverBorderContainerState();
+}
+
+class _HoverBorderContainerState extends State<HoverBorderContainer> {
+  bool _isHovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    // Xác định màu nền
+    Color bgColor;
+    if (widget.isTransparent) {
+      bgColor = _isHovering ? Colors.white : Colors.transparent;
+    } else {
+      bgColor = widget.isPopular ? Colors.black : Colors.white;
+    }
+
+    // Xác định màu viền
+    Color borderColor;
+    if (_isHovering) {
+      borderColor = const Color(0xFF00BFA6); // Màu sáng khi hover
+    } else {
+      borderColor = widget.isPopular || widget.isTransparent ? Colors.transparent : Colors.grey.shade200;
+    }
+
+    // Shadow
+    List<BoxShadow>? boxShadow;
+    if (!widget.isTransparent && !widget.isPopular) {
+      boxShadow = [
+        BoxShadow(
+            color: _isHovering ? const Color(0xFF00BFA6).withOpacity(0.2) : Colors.grey.shade100,
+            blurRadius: 15,
+            offset: const Offset(0, 5)
+        )
+      ];
+    } else if (widget.isPopular) {
+      boxShadow = [const BoxShadow(color: Colors.black26, blurRadius: 20, offset: Offset(0, 10))];
+    } else if (widget.isTransparent && _isHovering) {
+      boxShadow = [BoxShadow(color: Colors.grey.shade200, blurRadius: 10, offset: const Offset(0, 5))];
+    }
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: widget.width,
+        padding: widget.padding,
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          border: Border.all(color: borderColor, width: 1.5),
+          boxShadow: boxShadow,
+        ),
+        transform: _isHovering ? (Matrix4.identity()..translate(0, -5)) : Matrix4.identity(), // Nổi lên nhẹ khi hover
+        child: widget.child,
+      ),
     );
   }
 }

@@ -79,7 +79,6 @@ class HomePage extends StatelessWidget {
             RecentProjectSection(key: servicesKey, isDesktop: isDesktop, langCode: langCode),
             SizedBox(height: isDesktop ? 80 : 50),
             ContactSection(key: contactKey, isDesktop: isDesktop, langCode: langCode),
-            const SizedBox(height: 50),
           ],
         ),
       ),

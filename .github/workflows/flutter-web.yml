@@ -26,7 +26,7 @@ jobs:
         run: flutter pub get
 
       - name: Build Flutter Web
-        run: flutter build web --wasm --base-href="portfolio"
+        run: flutter build web --wasm --base-href "/portfolio/"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4

@@ -28,7 +28,7 @@ final List<Experience> myExperience = [
   Experience(
     time: '09/2019 - 09/2022',
     role: 'Education: FPT Polytechnic HCM',
-    company: 'Tien Phong',
+    company: 'FPT Polytechnic',
     desc: 'Major: Business Information Technology\nGPA: 8.4/10',
   ),
 ];
